@@ -197,7 +197,7 @@ myLayoutHook = avoidStruts (
         where
 		-- default tiling algorithm partitions the screen into two panes
 		mytiled = mygaps $ spacing 4 $ ResizableTall nmaster delta ratio []
-		mybsp   = mygaps $ emptyBSP
+		mybsp   = mygaps $ spacing 4 $ emptyBSP
 
 		-- Gaps
 		mygaps = gaps [(U,8), (D,8), (L,8), (R,8)]
