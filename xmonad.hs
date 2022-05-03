@@ -15,6 +15,7 @@ import XMonad.Hooks.DynamicLog
 
 import Graphics.X11.ExtraTypes.XF86
 import XMonad.Actions.CycleWS
+import XMonad.Actions.Navigation2D
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageHelpers
@@ -29,6 +30,7 @@ import System.Exit
 import XMonad.Layout.Gaps
 import XMonad.Layout.Spacing
 import XMonad.Layout.ResizableTile
+import XMonad.Layout.Spiral
 import XMonad.Layout.Grid
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Fullscreen
@@ -68,34 +70,38 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
  
     -- Resize viewed windows to the correct size
-    , ((modm,               xK_n     ), refresh)
+    --, ((modm,               xK_n     ), refresh)
  
     -- Move focus to the next window
     , ((modm,               xK_Tab   ), windows W.focusDown)
  
-    -- Move focus to the next window
-    , ((modm,               xK_j     ), windows W.focusDown)
- 
-    -- Move focus to the previous window
-    , ((modm,               xK_k     ), windows W.focusUp  )
+--    -- Move focus to the next/previous window
+--    , ((modm,               xK_j     ), windows W.focusDown)
+--    , ((modm,               xK_k     ), windows W.focusUp  )
+--    -- Swap the focused window with the next/previous window
+--    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
+--    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
+--    -- Shrink/Expand the master area
+--    , ((modm,               xK_h     ), sendMessage Shrink)
+--    , ((modm,               xK_l     ), sendMessage Expand)
+    , ((modm,                             xK_h     ), windowGo L False)
+    , ((modm,                             xK_j     ), windowGo D False)
+    , ((modm,                             xK_k     ), windowGo U False)
+    , ((modm,                             xK_l     ), windowGo R False)
+    , ((modm .|. shiftMask,               xK_h     ), windowSwap L False)
+    , ((modm .|. shiftMask,               xK_j     ), windowSwap D False)
+    , ((modm .|. shiftMask,               xK_k     ), windowSwap U False)
+    , ((modm .|. shiftMask,               xK_l     ), windowSwap R False)
+    , ((modm .|. altMask,                 xK_h     ), sendMessage $ ExpandTowards L)
+    , ((modm .|. altMask,                 xK_j     ), sendMessage $ ExpandTowards D)
+    , ((modm .|. altMask,                 xK_k     ), sendMessage $ ExpandTowards U)
+    , ((modm .|. altMask,                 xK_l     ), sendMessage $ ExpandTowards R)
  
     -- Move focus to the master window
     , ((modm,               xK_m     ), windows W.focusMaster  )
  
     -- Swap the focused window and the master window
     , ((modm,               xK_Return), windows W.swapMaster)
- 
-    -- Swap the focused window with the next window
-    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
- 
-    -- Swap the focused window with the previous window
-    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
- 
-    -- Shrink the master area
-    , ((modm,               xK_h     ), sendMessage Shrink)
- 
-    -- Expand the master area
-    , ((modm,               xK_l     ), sendMessage Expand)
  
     -- Push window back into tiling
 
@@ -127,11 +133,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- screenshot
     , ((ctrlMask .|. altMask , xK_a    ), spawn "$HOME/.local/bin/flames")
+    , ((0                    , xK_Print), spawn "$HOME/.local/bin/maims")
 
     , ((modm .|. ctrlMask, xK_g), sendMessage $ ToggleGaps)  -- toggle all gaps
     ]
      ++
- 
     --
     -- mod-[1..9], Switch to workspace N
     --
@@ -141,15 +147,15 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     [((m .|. modm, k), windows $ f i)
         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
         , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
-    ++
+    -- ++
  
     --
     -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
     -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
     --
-    [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
-        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+    --[((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
+    --    | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
+    --    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 ---spawn
 --
 myStartupHook = do
@@ -192,11 +198,14 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
     ]
 
 myLayoutHook = avoidStruts (
---       toggleLayouts Full (Grid) ||| toggleLayouts Full (ThreeColMid 1 (1/20) (1/2)) ||| simpleTabbed ||| toggleLayouts Full (tiled) ||| Mirror tiled)
-	toggleLayouts Full (mytiled) ||| toggleLayouts Full (mybsp) ||| simpleTabbed )
+       --toggleLayouts Full (Grid) ||| toggleLayouts Full (ThreeColMid 1 (1/20) (1/2)) ||| simpleTabbed ||| toggleLayouts Full (tiled) ||| Mirror tiled)
+       mybsp ||| myspiral ||| mygrid ||| simpleTabbed)
+	--toggleLayouts Full (mygrid) ||| toggleLayouts Full (mybsp) ||| toggleLayouts Full (mytiled) ||| simpleTabbed )
         where
 		-- default tiling algorithm partitions the screen into two panes
-		mytiled = mygaps $ spacing 4 $ ResizableTall nmaster delta ratio []
+		myspiral= mygaps $ spacing 4 $ spiral (6/7)
+		mygrid  = mygaps $ spacing 4 $ Grid
+		--tiled   = mygaps $ spacing 4 $ Tall nmaster delta ratio
 		mybsp   = mygaps $ spacing 4 $ emptyBSP
 
 		-- Gaps
