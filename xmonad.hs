@@ -64,12 +64,54 @@ import XMonad.Layout.Mosaic
 import XMonad.Layout.ThreeColumns
 import XMonad.Layout.Groups.Examples
 
+----Main Function
+main :: IO ()
+main = do
+    dbus <- D.connectSession
+    -- Request access to the DBus name
+    D.requestName dbus (D.busName_ "org.xmonad.Log")
+        [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
+
+    xmonad $ ewmh $ docks $ withUrgencyHook NoUrgencyHook $ defaults { logHook = dynamicLogWithPP (myLogHook dbus) }
+
+-- Override the PP values as you would otherwise, adding colors etc depending
+-- on  the statusbar used
+myLogHook :: D.Client -> PP
+myLogHook dbus = def
+    { ppOutput = dbusOutput dbus }
+-- Emit a DBus signal on log updates
+dbusOutput :: D.Client -> String -> IO ()
+dbusOutput dbus str = do
+    let signal = (D.signal objectPath interfaceName memberName) {
+            D.signalBody = [D.toVariant $ UTF8.decodeString str]
+        }
+    D.emit dbus signal
+  where
+    objectPath = D.objectPath_ "/org/xmonad/Log"
+    interfaceName = D.interfaceName_ "org.xmonad.Log"
+    memberName = D.memberName_ "Update"
+
+defaults = def{
+    modMask = mod4Mask
+    , terminal = myTerminal
+    , workspaces = myWorkspaces
+    , keys = myKeys
+    --, layoutHook = smartBorders $ myLayoutHook
+    , layoutHook = myLayout
+    , focusedBorderColor = "#81a1c1"
+    , normalBorderColor = "#434c5e"
+    , mouseBindings = myMouseBindings                           
+    , manageHook = myManageHook <+> manageHook def
+    , handleEventHook = myEventHook
+    , borderWidth         = 3
+    , startupHook = myStartupHook
+    }
 
 myTerminal = "kitty"
 ctrlMask = controlMask
 altMask = mod1Mask
 myBrowser = "qutebrowser https://duckduckgo.com"
-myrofi = "rofi -show drun -theme $HOME/.config/rofi/nord/nord.rasi"
+myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
 gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
 
 
@@ -309,45 +351,3 @@ circle      = renamed [Replace "Super Cir"]
             $ lessBorders Screen
             $ avoidStruts Circle
 		
-----Main Function
-main :: IO ()
-main = do
-    dbus <- D.connectSession
-    -- Request access to the DBus name
-    D.requestName dbus (D.busName_ "org.xmonad.Log")
-        [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
-
-    xmonad $ ewmh $ docks $ withUrgencyHook NoUrgencyHook $ defaults { logHook = dynamicLogWithPP (myLogHook dbus) }
-
--- Override the PP values as you would otherwise, adding colors etc depending
--- on  the statusbar used
-myLogHook :: D.Client -> PP
-myLogHook dbus = def
-    { ppOutput = dbusOutput dbus }
--- Emit a DBus signal on log updates
-dbusOutput :: D.Client -> String -> IO ()
-dbusOutput dbus str = do
-    let signal = (D.signal objectPath interfaceName memberName) {
-            D.signalBody = [D.toVariant $ UTF8.decodeString str]
-        }
-    D.emit dbus signal
-  where
-    objectPath = D.objectPath_ "/org/xmonad/Log"
-    interfaceName = D.interfaceName_ "org.xmonad.Log"
-    memberName = D.memberName_ "Update"
-
-defaults = def{
-    modMask = mod4Mask
-    , terminal = myTerminal
-    , workspaces = myWorkspaces
-    , keys = myKeys
-    --, layoutHook = smartBorders $ myLayoutHook
-    , layoutHook = myLayout
-    , focusedBorderColor = "#81a1c1"
-    , normalBorderColor = "#434c5e"
-    , mouseBindings = myMouseBindings                           
-    , manageHook = myManageHook <+> manageHook def
-    , handleEventHook = myEventHook
-    , borderWidth         = 3
-    , startupHook = myStartupHook
-    }
