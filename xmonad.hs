@@ -114,7 +114,6 @@ myBrowser = "qutebrowser https://duckduckgo.com"
 myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
 gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
 
-
 ---- Key binding to toggle the gap for the bar.
 toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
 
