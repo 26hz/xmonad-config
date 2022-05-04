@@ -130,12 +130,12 @@ filterOutNSP =
     let g f xs = filter (\(W.Workspace t _ _) -> t /= "NSP") (f xs)
     in  g <$> getSortByIndex
 
-myWorkspaces    = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+myWorkspaces    = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
     -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), spawn myTerminal)
+    [ ((modm,               xK_Return), spawn myTerminal)
  
     -- launch rofi
     , ((modm,               xK_space ), spawn myrofi)
@@ -143,8 +143,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_v     ), spawn myBrowser)
     , ((modm,               xK_e     ), spawn myFileBrowser)
    -- close focused window    
-    , ((modm,               xK_BackSpace     ), kill)
-    , ((modm .|. shiftMask, xK_BackSpace     ), killAll)
+    , ((modm,               xK_q     ), kill)
+    , ((modm .|. shiftMask, xK_q     ), killAll)
 
     --, ((modm,               xK_d     ), goToSelected defaultGSConfig)
     --, ((modm .|. shiftMask, xK_d     ), spawnSelected defaultGSConfig ["kitty","telegram-desktop"])
@@ -209,7 +209,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_m     ), windows W.focusMaster  )
  
     -- Swap the focused window and the master window
-    , ((modm,               xK_Return), windows W.swapMaster)
+    , ((modm .|. shiftMask, xK_Return), windows W.swapMaster)
  
     -- Increment the number of windows in the master area
     , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
@@ -221,7 +221,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Use this binding with avoidStruts from Hooks.ManageDocks.
     -- See also the statusBar function from Hooks.DynamicLog.
     --
-    , ((modm              , xK_b     ), toggleStruts)
+    , ((modm               , xK_b     ), toggleStruts)
  
     -- Quit xmonad
     , ((modm .|. altMask   , xK_q     ), io (exitWith ExitSuccess))
@@ -249,7 +249,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- mod-shift-[1..9], Move client to workspace N
     --
     [((m .|. modm, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
+        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_8]
         , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
     -- ++
  
@@ -265,7 +265,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 myStartupHook = do
 	spawnOnce "qjackctl"
 	spawnOnce "pavucontrol"
-	spawnOnce "ardour6"
+	spawnOnce "ardour6 default"
 	spawn "feh --bg-fill --no-fehbg ~/Pictures/wallpapers/nord_buildings.png"
 	spawn "picom --experimental-backends --backend glx --xrender-sync-fence --config ~/.xmonad/picom/picom.conf"
 	spawn "$HOME/.xmonad/polybar/launch.sh"
@@ -347,26 +347,26 @@ tiled2      = renamed [Replace "Super Tall"]
             $ avoidStruts 
             $ windowNavigation 
             $ subLayout [] (Simplest ||| Circle)
-            $ gaps 3 $ Tall 1 (3/100) (1/2) 
+            $ gaps 8 $ Tall 1 (3/100) (1/2) 
 
 bsp       = renamed [Replace "Super Bsp"]
             $ lessBorders Screen
             $ avoidStruts
             $ windowNavigation 
-	    $ gaps 3
+	    $ gaps 8
 	    $ emptyBSP
 
 grid      = renamed [Replace "Super Grid"]
             $ lessBorders Screen
             $ avoidStruts
             $ windowNavigation
-            $ gaps 3
+            $ gaps 8
               Grid 
 
 twopanes  = renamed [Replace "Super Two"]
             $ lessBorders Screen
             $ avoidStruts
-            $ gaps 3
+            $ gaps 8
             $ TwoPane (3/100) (1/2)
 
 circle      = renamed [Replace "Super Cir"]
