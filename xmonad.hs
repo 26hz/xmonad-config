@@ -339,8 +339,7 @@ myLayout  = toggleLayouts full
             ||| circle
             ) 
 
-full      = Full 
---full      = noBorders Full 
+full      = noBorders Full 
 
 tiled2      = renamed [Replace "Super Tall"] 
             $ lessBorders Screen
