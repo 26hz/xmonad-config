@@ -270,6 +270,7 @@ myStartupHook = do
 	spawn "picom --experimental-backends --backend glx --xrender-sync-fence --config ~/.xmonad/picom/picom.conf"
 	spawn "$HOME/.xmonad/polybar/launch.sh"
 	spawn "fcitx5"
+	spawn "parcellite"
 	--setWMName "LG3D"
 
 myManageHook = composeAll
