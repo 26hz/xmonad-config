@@ -17,7 +17,8 @@ import XMonad.Util.Run
 import XMonad.Util.SpawnOnce
 import XMonad.Util.SpawnNamedPipe
 import XMonad.Util.NamedScratchpad
-import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Util.EZConfig (additionalKeys)
+import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 import XMonad.Prompt
 import XMonad.Prompt.Shell
@@ -29,6 +30,8 @@ import XMonad.Actions.RotSlaves
 import XMonad.Actions.GridSelect
 import XMonad.Actions.NoBorders
 import XMonad.Actions.UpdatePointer
+import XMonad.Actions.WithAll (killAll)
+import XMonad.Actions.FloatKeys (keysResizeWindow, keysAbsResizeWindow)
 
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops
@@ -72,12 +75,12 @@ main = do
     D.requestName dbus (D.busName_ "org.xmonad.Log")
         [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
 
-    xmonad $ ewmh $ docks $ withUrgencyHook NoUrgencyHook $ defaults { logHook = dynamicLogWithPP (myLogHook dbus) }
+    xmonad $ ewmh $ docks $ withUrgencyHook NoUrgencyHook $ defaults { logHook = dynamicLogWithPP (polybarHook dbus) }
 
 -- Override the PP values as you would otherwise, adding colors etc depending
 -- on  the statusbar used
-myLogHook :: D.Client -> PP
-myLogHook dbus = def
+polybarHook :: D.Client -> PP
+polybarHook dbus = def
     { ppOutput = dbusOutput dbus }
 -- Emit a DBus signal on log updates
 dbusOutput :: D.Client -> String -> IO ()
@@ -110,12 +113,22 @@ defaults = def{
 myTerminal = "kitty"
 ctrlMask = controlMask
 altMask = mod1Mask
-myBrowser = "qutebrowser https://duckduckgo.com"
+--myBrowser = "qutebrowser https://duckduckgo.com"
+myBrowser = "vivaldi"
+myFileBrowser = "thunar"
 myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
 gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
 
 ---- Key binding to toggle the gap for the bar.
-toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
+--toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
+togglePolybar = spawn "polybar-msg cmd toggle &"
+toggleStruts  = togglePolybar >> sendMessage ToggleStruts
+toggleFull    = togglePolybar >> sendMessage ToggleLayout
+switchWS dir =
+    findWorkspace filterOutNSP dir AnyWS 1 >>= windows . W.view
+filterOutNSP = 
+    let g f xs = filter (\(W.Workspace t _ _) -> t /= "NSP") (f xs)
+    in  g <$> getSortByIndex
 
 myWorkspaces    = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
@@ -128,8 +141,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_space ), spawn myrofi)
  
     , ((modm,               xK_v     ), spawn myBrowser)
+    , ((modm,               xK_e     ), spawn myFileBrowser)
    -- close focused window    
-    , ((modm,               xK_q     ), kill)
+    , ((modm,               xK_BackSpace     ), kill)
+    , ((modm .|. shiftMask, xK_BackSpace     ), killAll)
 
     --, ((modm,               xK_d     ), goToSelected defaultGSConfig)
     --, ((modm .|. shiftMask, xK_d     ), spawnSelected defaultGSConfig ["kitty","telegram-desktop"])
@@ -139,12 +154,21 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --- Rotate through the available layout algorithms
     , ((modm,               xK_p ), sendMessage NextLayout)
     , ((modm,               xK_r ), setLayout $ XMonad.layoutHook conf)
-    , ((modm,               xK_f ), sendMessage $ ToggleLayout)
+    , ((modm .|. shiftMask, xK_r ), withFocused (windows . W.sink))
+    , ((modm,               xK_f ), toggleFull)
     , ((modm,               xK_g ), sendMessage $ JumpToLayout "Super Grid")
     , ((modm,               xK_t ), sendMessage $ JumpToLayout "Super Tall")
     , ((modm,               xK_s ), sendMessage $ JumpToLayout "Super Bsp")
     , ((modm,               xK_n ), sendMessage $ JumpToLayout "Super Two")
     , ((modm,               xK_c ), sendMessage $ JumpToLayout "Super Cir")
+
+    , ((modm,               xK_z ), withFocused (keysResizeWindow (-10,-10) (1,1)))
+    , ((modm,               xK_x ), withFocused (keysResizeWindow (10,10) (1,1)))
+    , ((modm .|. shiftMask, xK_z ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752)))
+    , ((modm .|. shiftMask, xK_x ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
+
+    , ((modm,               xK_o ), switchWS Next)
+    , ((modm,               xK_i ), switchWS Prev)
 
     -- Move focus to the next window
     , ((modm,               xK_Tab   ), windows W.focusDown)
@@ -197,7 +221,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Use this binding with avoidStruts from Hooks.ManageDocks.
     -- See also the statusBar function from Hooks.DynamicLog.
     --
-     , ((modm              , xK_b     ), sendMessage ToggleStruts)
+    , ((modm              , xK_b     ), toggleStruts)
  
     -- Quit xmonad
     , ((modm .|. altMask   , xK_q     ), io (exitWith ExitSuccess))
