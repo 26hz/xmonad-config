@@ -1,34 +1,58 @@
 -- Imports
-import XMonad
+import XMonad hiding ( (|||) )
 import XMonad.Operations
 import System.IO
 import System.Exit
-import XMonad.Util.Run(spawnPipe)
-import XMonad.Util.SpawnOnce
-import XMonad.Actions.SpawnOn
-import XMonad.Util.NamedScratchpad
-import XMonad.Util.EZConfig(additionalKeys)
+import Data.Monoid
+import Data.Maybe
+import Graphics.X11.ExtraTypes.XF86
+
+import qualified XMonad.StackSet as W
+import qualified Data.Map        as M
 import qualified DBus as D
 import qualified DBus.Client as D
 import qualified Codec.Binary.UTF8.String as UTF8
-import XMonad.Hooks.DynamicLog
 
-import Graphics.X11.ExtraTypes.XF86
+import XMonad.Util.Run
+import XMonad.Util.SpawnOnce
+import XMonad.Util.SpawnNamedPipe
+import XMonad.Util.NamedScratchpad
+import XMonad.Util.EZConfig(additionalKeys)
+
+import XMonad.Prompt
+import XMonad.Prompt.Shell
+
+import XMonad.Actions.SpawnOn
 import XMonad.Actions.CycleWS
 import XMonad.Actions.Navigation2D
+import XMonad.Actions.RotSlaves
+import XMonad.Actions.GridSelect
+import XMonad.Actions.NoBorders
+import XMonad.Actions.UpdatePointer
+
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks    -- dock/tray mgmt
-import Data.Monoid
-import qualified XMonad.StackSet as W
-import qualified Data.Map        as M
-import System.Exit
---Layouts
-import XMonad.Layout.Gaps
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.FadeInactive
+
+import XMonad.Layout.Renamed
+--import XMonad.Layout.Gaps
 import XMonad.Layout.Spacing
+import XMonad.Layout.SimpleDecoration
+import XMonad.Layout.NoBorders
+import XMonad.Layout.CenteredMaster
+import XMonad.Layout.LayoutCombinators
+import XMonad.Layout.SubLayouts
+import XMonad.Layout.NoFrillsDecoration
+import XMonad.Layout.Circle
+import XMonad.Layout.WindowNavigation
+import XMonad.Layout.Simplest
+import XMonad.Layout.LayoutHints
+import XMonad.Layout.TwoPane
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Spiral
 import XMonad.Layout.Grid
@@ -38,14 +62,16 @@ import XMonad.Layout.ToggleLayouts          -- Full window at any time
 import XMonad.Layout.BinarySpacePartition
 import XMonad.Layout.Mosaic
 import XMonad.Layout.ThreeColumns
---import XMonad.Layout.NoBorders
+import XMonad.Layout.Groups.Examples
 
 
 myTerminal = "kitty"
 ctrlMask = controlMask
 altMask = mod1Mask
-myBrowser = "vivaldi"
+myBrowser = "qutebrowser https://duckduckgo.com"
 myrofi = "rofi -show drun -theme $HOME/.config/rofi/nord/nord.rasi"
+gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
+
 
 ---- Key binding to toggle the gap for the bar.
 toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
@@ -58,54 +84,67 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     [ ((modm .|. shiftMask, xK_Return), spawn myTerminal)
  
     -- launch rofi
-    , ((modm,               xK_p     ), spawn myrofi)
+    , ((modm,               xK_space ), spawn myrofi)
  
     , ((modm,               xK_v     ), spawn myBrowser)
    -- close focused window    
-    , ((modm .|. shiftMask, xK_c     ), kill)
+    , ((modm,               xK_q     ), kill)
+
+    --, ((modm,               xK_d     ), goToSelected defaultGSConfig)
+    --, ((modm .|. shiftMask, xK_d     ), spawnSelected defaultGSConfig ["kitty","telegram-desktop"])
+    , ((modm,               xK_d     ), goToSelected $ gsconfig1)
+    , ((modm .|. shiftMask, xK_d     ), spawnSelected defaultGSConfig ["kitty","telegram-desktop"])
+
     --- Rotate through the available layout algorithms
-    , ((modm,               xK_space ), sendMessage NextLayout)
- 
-    --  Reset the layouts on the current workspace to default
-    , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
- 
-    -- Resize viewed windows to the correct size
-    --, ((modm,               xK_n     ), refresh)
- 
+    , ((modm,               xK_p ), sendMessage NextLayout)
+    , ((modm,               xK_r ), setLayout $ XMonad.layoutHook conf)
+    , ((modm,               xK_f ), sendMessage $ ToggleLayout)
+    , ((modm,               xK_g ), sendMessage $ JumpToLayout "Super Grid")
+    , ((modm,               xK_t ), sendMessage $ JumpToLayout "Super Tall")
+    , ((modm,               xK_s ), sendMessage $ JumpToLayout "Super Bsp")
+    , ((modm,               xK_n ), sendMessage $ JumpToLayout "Super Two")
+    , ((modm,               xK_c ), sendMessage $ JumpToLayout "Super Cir")
+
     -- Move focus to the next window
     , ((modm,               xK_Tab   ), windows W.focusDown)
- 
---    -- Move focus to the next/previous window
---    , ((modm,               xK_j     ), windows W.focusDown)
---    , ((modm,               xK_k     ), windows W.focusUp  )
---    -- Swap the focused window with the next/previous window
---    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
---    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
---    -- Shrink/Expand the master area
---    , ((modm,               xK_h     ), sendMessage Shrink)
---    , ((modm,               xK_l     ), sendMessage Expand)
-    , ((modm,                             xK_h     ), windowGo L False)
-    , ((modm,                             xK_j     ), windowGo D False)
-    , ((modm,                             xK_k     ), windowGo U False)
-    , ((modm,                             xK_l     ), windowGo R False)
-    , ((modm .|. shiftMask,               xK_h     ), windowSwap L False)
-    , ((modm .|. shiftMask,               xK_j     ), windowSwap D False)
-    , ((modm .|. shiftMask,               xK_k     ), windowSwap U False)
-    , ((modm .|. shiftMask,               xK_l     ), windowSwap R False)
-    , ((modm .|. altMask,                 xK_h     ), sendMessage $ ExpandTowards L)
-    , ((modm .|. altMask,                 xK_j     ), sendMessage $ ExpandTowards D)
-    , ((modm .|. altMask,                 xK_k     ), sendMessage $ ExpandTowards U)
-    , ((modm .|. altMask,                 xK_l     ), sendMessage $ ExpandTowards R)
+
+    -- Move focus to the next/previous window
+    , ((modm,               xK_j     ), windows W.focusDown)
+    , ((modm,               xK_k     ), windows W.focusUp  )
+    -- Swap the focused window with the next/previous window
+    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
+    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
+    -- Shrink/Expand the master area
+    , ((modm,               xK_h     ), sendMessage Shrink)
+    , ((modm,               xK_l     ), sendMessage Expand)
+
+    -- Window navigation (ignores group's inner windows)
+--    , ((modm,                 xK_Right), sendMessage $ Go R)
+--    , ((modm,                 xK_Left ), sendMessage $ Go L)
+--    , ((modm,                 xK_Up   ), sendMessage $ Go U)
+--    , ((modm,                 xK_Down ), sendMessage $ Go D)
+--    , ((modm .|. controlMask, xK_Right), sendMessage $ Swap R)
+--    , ((modm .|. controlMask, xK_Left ), sendMessage $ Swap L)
+--    , ((modm .|. controlMask, xK_Up   ), sendMessage $ Swap U)
+--    , ((modm .|. controlMask, xK_Down ), sendMessage $ Swap D)
+--    , ((modm,                             xK_h     ), windowGo L False)
+--    , ((modm,                             xK_j     ), windowGo D False)
+--    , ((modm,                             xK_k     ), windowGo U False)
+--    , ((modm,                             xK_l     ), windowGo R False)
+--    , ((modm .|. shiftMask,               xK_h     ), windowSwap L False)
+--    , ((modm .|. shiftMask,               xK_j     ), windowSwap D False)
+--    , ((modm .|. shiftMask,               xK_k     ), windowSwap U False)
+--    , ((modm .|. shiftMask,               xK_l     ), windowSwap R False)
+--    , ((modm .|. altMask,                 xK_h     ), sendMessage $ ExpandTowards L)
+--    , ((modm .|. altMask,                 xK_j     ), sendMessage $ ExpandTowards D)
+--    , ((modm .|. altMask,                 xK_k     ), sendMessage $ ExpandTowards U)
+--    , ((modm .|. altMask,                 xK_l     ), sendMessage $ ExpandTowards R)
  
     -- Move focus to the master window
     , ((modm,               xK_m     ), windows W.focusMaster  )
  
     -- Swap the focused window and the master window
     , ((modm,               xK_Return), windows W.swapMaster)
- 
-    -- Push window back into tiling
-
-    , ((modm,               xK_t     ), withFocused $ windows . W.sink)
  
     -- Increment the number of windows in the master area
     , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
@@ -120,10 +159,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
      , ((modm              , xK_b     ), sendMessage ToggleStruts)
  
     -- Quit xmonad
-    , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
+    , ((modm .|. altMask   , xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
+    , ((modm .|. altMask   , xK_r     ), spawn "xmonad --recompile; xmonad --restart")
 
     -- volume control
     , ((modm              , xK_Up    ), spawn "$HOME/.local/bin/media.sh up")
@@ -132,10 +171,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm              , xK_Right ), spawn "$HOME/.local/bin/web.sh up")
 
     -- screenshot
-    , ((ctrlMask .|. altMask , xK_a    ), spawn "$HOME/.local/bin/flames")
-    , ((0                    , xK_Print), spawn "$HOME/.local/bin/maims")
+    , ((ctrlMask .|. altMask , xK_a    ), spawn "$HOME/.local/bin/flames && notify-send -u normal 'Screenshot' 'successful'")
+    , ((0                    , xK_Print), spawn "$HOME/.local/bin/maims && notify-send -u normal 'Screenshot' 'successful'")
 
-    , ((modm .|. ctrlMask, xK_g), sendMessage $ ToggleGaps)  -- toggle all gaps
+    --, ((modm .|. ctrlMask, xK_g), sendMessage $ ToggleGaps)  -- toggle all gaps
     ]
      ++
     --
@@ -179,6 +218,8 @@ myManageHook = composeAll
       , isFullscreen                --> (doF W.focusDown <+> doFullFloat)
       ]
 
+myEventHook = hintsEventHook
+
 -- Mouse bindings
  
 myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
@@ -197,28 +238,76 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
     ]
 
-myLayoutHook = avoidStruts (
+
+--myLayoutHook = avoidStruts (
        --toggleLayouts Full (Grid) ||| toggleLayouts Full (ThreeColMid 1 (1/20) (1/2)) ||| simpleTabbed ||| toggleLayouts Full (tiled) ||| Mirror tiled)
-       mybsp ||| myspiral ||| mygrid ||| simpleTabbed)
-	--toggleLayouts Full (mygrid) ||| toggleLayouts Full (mybsp) ||| toggleLayouts Full (mytiled) ||| simpleTabbed )
-        where
+       --mybsp ||| myspiral ||| mygrid ||| simpleTabbed)
+--        where
 		-- default tiling algorithm partitions the screen into two panes
-		myspiral= mygaps $ spacing 4 $ spiral (6/7)
-		mygrid  = mygaps $ spacing 4 $ Grid
+		--myspiral= mygaps $ spacing 4 $ spiral (6/7)
+
+		--grid  = mygaps $ spacing 4 $ Grid
 		--tiled   = mygaps $ spacing 4 $ Tall nmaster delta ratio
-		mybsp   = mygaps $ spacing 4 $ emptyBSP
+		--mybsp   = mygaps $ spacing 4 $ emptyBSP
 
 		-- Gaps
-		mygaps = gaps [(U,8), (D,8), (L,8), (R,8)]
+		--mygaps = gaps [(U,8), (D,8), (L,8), (R,8)]
 
 		-- The default number of windows in the master pane
-		nmaster = 1
+		--nmaster = 1
 
 		-- Percent of screen to increment by when resizing panes
-		delta = 2/100 
+		--delta = 2/100 
 
 		-- Default proportion of screen occupied by master pane
-		ratio   = 1/2
+		--ratio   = 1/2
+
+gaps i = spacingRaw True (Border i i i i) True (Border i i i i) True 
+
+myLayout  = toggleLayouts full 
+            (   
+            smartBorders 
+                tiled2 
+            ||| bsp
+            ||| grid
+            ||| twopanes 
+            ||| circle
+            ) 
+
+full      = Full 
+--full      = noBorders Full 
+
+tiled2      = renamed [Replace "Super Tall"] 
+            $ lessBorders Screen
+            $ avoidStruts 
+            $ windowNavigation 
+            $ subLayout [] (Simplest ||| Circle)
+            $ gaps 3 $ Tall 1 (3/100) (1/2) 
+
+bsp       = renamed [Replace "Super Bsp"]
+            $ lessBorders Screen
+            $ avoidStruts
+            $ windowNavigation 
+	    $ gaps 3
+	    $ emptyBSP
+
+grid      = renamed [Replace "Super Grid"]
+            $ lessBorders Screen
+            $ avoidStruts
+            $ windowNavigation
+            $ gaps 3
+              Grid 
+
+twopanes  = renamed [Replace "Super Two"]
+            $ lessBorders Screen
+            $ avoidStruts
+            $ gaps 3
+            $ TwoPane (3/100) (1/2)
+
+circle      = renamed [Replace "Super Cir"]
+            $ windowNavigation
+            $ lessBorders Screen
+            $ avoidStruts Circle
 		
 ----Main Function
 main :: IO ()
@@ -228,7 +317,7 @@ main = do
     D.requestName dbus (D.busName_ "org.xmonad.Log")
         [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
 
-    xmonad $ ewmh $ docks $ defaults { logHook = dynamicLogWithPP (myLogHook dbus) }
+    xmonad $ ewmh $ docks $ withUrgencyHook NoUrgencyHook $ defaults { logHook = dynamicLogWithPP (myLogHook dbus) }
 
 -- Override the PP values as you would otherwise, adding colors etc depending
 -- on  the statusbar used
@@ -253,11 +342,12 @@ defaults = def{
     , workspaces = myWorkspaces
     , keys = myKeys
     --, layoutHook = smartBorders $ myLayoutHook
-    , layoutHook = myLayoutHook
+    , layoutHook = myLayout
     , focusedBorderColor = "#81a1c1"
     , normalBorderColor = "#434c5e"
     , mouseBindings = myMouseBindings                           
     , manageHook = myManageHook <+> manageHook def
+    , handleEventHook = myEventHook
     , borderWidth         = 3
     , startupHook = myStartupHook
     }
