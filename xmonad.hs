@@ -113,8 +113,8 @@ defaults = def{
 myTerminal = "kitty"
 ctrlMask = controlMask
 altMask = mod1Mask
---myBrowser = "qutebrowser https://duckduckgo.com"
-myBrowser = "vivaldi"
+myBrowser = "qutebrowser"
+--myBrowser = "vivaldi"
 myFileBrowser = "thunar"
 myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
 gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
