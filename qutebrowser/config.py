@@ -776,7 +776,7 @@ c.url.start_pages = homePage
 
 ## Default zoom level.
 ## [Perc]
-c.zoom.default = '125%'
+c.zoom.default = '110%'
 
 ## Available zoom levels.
 ## [List of Perc]
