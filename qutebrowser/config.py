@@ -561,8 +561,11 @@ c.session.lazy_restore = False
 #################################################################
 
 ## Hide the statusbar unless a message is shown.
+##   - always: Always show the statusbar.
+##   - never: Always hide the statusbar.
+##   - in-mode: Show the statusbar when in modes other than normal mode.
 ## [String]
-c.statusbar.show = 'in-mode'
+c.statusbar.show = 'always'
 
 ## Padding (in pixels) for the statusbar.
 ## [Padding]
