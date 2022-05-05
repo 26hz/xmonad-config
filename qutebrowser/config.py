@@ -3,18 +3,23 @@ config.load_autoconfig(True)
 
 config.source('nord-theme.py')
 
-c.qt.force_software_rendering = "chromium"
+c.qt.force_software_rendering = "software-opengl"
 
-homePage = [ "https://duckduckgo.com" ]
+homePage = [ "https://limestart.cn" ]
 
 c.confirm_quit = ['downloads']
+
+c.auto_save.session = True
 
 #################################################################
 # FONTS
 #################################################################
 
+c.fonts.default_family = "18px Sarasa Fixed SC Nerd Font"
+c.fonts.default_size = "18px"
 c.fonts.completion.entry = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.completion.category = "18px Sarasa Fixed SC Nerd Font"
+c.fonts.contextmenu = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.debug_console = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.downloads = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.hints = "18px Sarasa Fixed SC Nerd Font"
@@ -25,6 +30,16 @@ c.fonts.prompts = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.statusbar = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.tabs.selected = "18px Sarasa Fixed SC Nerd Font"
 c.fonts.tabs.unselected = "18px Sarasa Fixed SC Nerd Font"
+c.fonts.web.family.cursive = "Sarasa Fixed SC Nerd Font"
+c.fonts.web.family.fantasy = "Sarasa Fixed SC Nerd Font"
+c.fonts.web.family.fixed = "Sarasa Fixed SC Nerd Font"
+c.fonts.web.family.sans_serif = "Sarasa Fixed SC Nerd Font"
+c.fonts.web.family.serif = "Sarasa Fixed SC Nerd Font"
+c.fonts.web.family.standard = "Sarasa Fixed SC Nerd Font"
+c.fonts.web.size.default = 15
+c.fonts.web.size.default_fixed = 12
+c.fonts.web.size.minimum = 11
+c.fonts.web.size.minimum_logical = 12
 
 #################################################################
 # EDITOR
@@ -32,6 +47,15 @@ c.fonts.tabs.unselected = "18px Sarasa Fixed SC Nerd Font"
 
 c.editor.command = [ "kitty", "-e", "nvim", "{}" ]
 c.editor.encoding = "utf-8"
+
+#################################################################
+# fileselect
+#################################################################
+
+c.fileselect.folder.command = ["kitty", "-e", "ranger", "--choosedir={}"]
+c.fileselect.handler = "default"
+c.fileselect.multiple_files.command = ["kitty", "-e", "ranger", "--choosefiles={}"]
+c.fileselect.single_file.command = ["kitty", "-e", "ranger", "--choosefile={}"]
 
 #################################################################
 # DOWNLOADS
@@ -528,7 +552,7 @@ c.prompt.radius = 45
 
 ## Show the scrollbar.
 ## [String]
-c.scrolling.bar = 'never'
+c.scrolling.bar = 'when-searching'
 
 ## Enable smooth scrolling for web pages. Note smooth scrolling does not work with the :scroll-px command.
 ## This setting supports URL patterns.
@@ -545,7 +569,7 @@ c.scrolling.smooth = True
 
 ## Load a restored tab as soon as it takes focus.
 ## [Bool]
-c.session.lazy_restore = False
+c.session.lazy_restore = True
 
 #################################################################
 # SPELLCHECK
@@ -622,7 +646,7 @@ c.tabs.indicator.width = 2
 ##      - default-page: Load the default page.
 ##      - close: Close the window.
 ## [String]
-c.tabs.last_close = 'close'
+c.tabs.last_close = 'ignore'
 
 ## Switch between tabs using the mouse wheel.
 ## [Bool]
@@ -669,7 +693,7 @@ c.tabs.select_on_remove = 'prev'
 ##      - multiple: Hide the tab bar if only one tab is open.
 ##      - switching: Show the tab bar when switching tabs.
 ## [String]
-c.tabs.show = 'multiple'
+c.tabs.show = 'always'
 
 ## Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to switching.
 ## [Int]
@@ -783,7 +807,7 @@ c.zoom.default = '110%'
 
 ## Available zoom levels.
 ## [List of Perc]
-## c.zoom.levels = {25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400, 500}
+c.zoom.levels = ["25%", "33%", "50%", "67%", "75%", "90%", "100%", "110%", "125%", "150%", "175%", "200%", "250%", "300%", "400%", "500%"]
 
 ## Number of zoom increments to divide the mouse wheel movements to.
 ## [Int]
