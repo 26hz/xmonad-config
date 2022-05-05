@@ -101,8 +101,8 @@ defaults = def{
     , keys = myKeys
     --, layoutHook = smartBorders $ myLayoutHook
     , layoutHook = myLayout
-    , focusedBorderColor = "#81a1c1"
-    , normalBorderColor = "#434c5e"
+    , focusedBorderColor = "#88c0d0"
+    , normalBorderColor = "#2e3440"
     , mouseBindings = myMouseBindings                           
     , manageHook = myManageHook <+> manageHook def
     , handleEventHook = myEventHook
@@ -113,7 +113,7 @@ defaults = def{
 myTerminal = "kitty"
 ctrlMask = controlMask
 altMask = mod1Mask
-myBrowser = "qutebrowser"
+myBrowser = "qutebrowser -C $HOME/.xmonad/qutebrowser/config.py"
 --myBrowser = "vivaldi"
 myFileBrowser = "thunar"
 myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
@@ -366,6 +366,7 @@ grid      = renamed [Replace "Super Grid"]
 twopanes  = renamed [Replace "Super Two"]
             $ lessBorders Screen
             $ avoidStruts
+            $ windowNavigation
             $ gaps 8
             $ TwoPane (3/100) (1/2)
 
