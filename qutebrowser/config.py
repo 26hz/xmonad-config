@@ -5,11 +5,18 @@ config.source('nord-theme.py')
 
 c.qt.force_software_rendering = "software-opengl"
 
-homePage = [ "https://limestart.cn" ]
+#homePage = [ "https://limestart.cn" ]
+homePage = [ "https://duckduckgo.com" ]
 
 c.confirm_quit = ['downloads']
 
 c.auto_save.session = True
+
+#################################################################
+# BINDINGS
+#################################################################
+
+config.bind('M', 'hint links spawn --detach mpv --force-window yes {hint-url}')
 
 #################################################################
 # FONTS

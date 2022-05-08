@@ -130,7 +130,7 @@ filterOutNSP =
     let g f xs = filter (\(W.Workspace t _ _) -> t /= "NSP") (f xs)
     in  g <$> getSortByIndex
 
-myWorkspaces    = ["1", "2", "3", "4", "5", "6", "7", "8"]
+myWorkspaces    = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
@@ -249,7 +249,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- mod-shift-[1..9], Move client to workspace N
     --
     [((m .|. modm, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_8]
+        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
         , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
     -- ++
  
