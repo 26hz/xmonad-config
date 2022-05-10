@@ -266,7 +266,7 @@ myStartupHook = do
 	spawnOnce "qjackctl"
 	spawnOnce "pavucontrol"
 	spawnOnce "ardour6 default"
-	spawn "feh --bg-fill --no-fehbg ~/Pictures/wallpapers/nord_buildings.png"
+	spawn "feh --bg-fill --no-fehbg ~/.xmonad/wallpapers/nord_buildings.png"
 	spawn "picom --experimental-backends --backend glx --xrender-sync-fence --config ~/.xmonad/picom/picom.conf"
 	spawn "$HOME/.xmonad/polybar/launch.sh"
 	spawn "fcitx5"
