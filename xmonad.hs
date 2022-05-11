@@ -271,7 +271,7 @@ myStartupHook = do
 	spawn "$HOME/.xmonad/polybar/launch.sh"
 	spawn "fcitx5"
 	spawn "parcellite"
-	--setWMName "LG3D"
+	setWMName "LG3D"
 
 myManageHook = composeAll
       [ className =? "Thunar"         --> doFloat
