@@ -113,8 +113,8 @@ defaults = def{
 myTerminal = "kitty"
 ctrlMask = controlMask
 altMask = mod1Mask
-myBrowser = "qutebrowser"
---myBrowser = "vivaldi"
+myBrowser = "vivaldi"
+myBrowser' = "qutebrowser"
 myFileBrowser = "thunar"
 myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
 gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
@@ -141,6 +141,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_space ), spawn myrofi)
  
     , ((modm,               xK_v     ), spawn myBrowser)
+    , ((modm,               xK_a     ), spawn myBrowser')
     , ((modm,               xK_e     ), spawn myFileBrowser)
    -- close focused window    
     , ((modm,               xK_q     ), kill)
