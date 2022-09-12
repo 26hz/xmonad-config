@@ -111,13 +111,15 @@ defaults = def{
     }
 
 myTerminal = "kitty"
+myTerminal' = "konsole"
 ctrlMask = controlMask
 altMask = mod1Mask
 myBrowser = "google-chrome-stable"
-myBrowser' = "qutebrowser"
+myBrowser' = "qutebrowser -C $HOME/.config/xmonad/qutebrowser/config.py"
 myFileBrowser = "thunar"
-myrofi = "rofi -show drun -theme $HOME/.xmonad/rofi/nord.rasi"
-gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
+myrofi = "rofi -show drun -theme $HOME/.config/xmonad/rofi/nord.rasi"
+--gsconfig1 = defaultGSConfig { gs_cellheight = 100, gs_cellwidth = 200 }
+gsconfig1 = def { gs_cellheight = 100, gs_cellwidth = 200 }
 
 ---- Key binding to toggle the gap for the bar.
 --toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
@@ -125,7 +127,7 @@ togglePolybar = spawn "polybar-msg cmd toggle &"
 toggleStruts  = togglePolybar >> sendMessage ToggleStruts
 toggleFull    = togglePolybar >> sendMessage ToggleLayout
 switchWS dir =
-    findWorkspace filterOutNSP dir AnyWS 1 >>= windows . W.view
+    findWorkspace filterOutNSP dir anyWS 1 >>= windows . W.view
 filterOutNSP = 
     let g f xs = filter (\(W.Workspace t _ _) -> t /= "NSP") (f xs)
     in  g <$> getSortByIndex
@@ -135,7 +137,7 @@ myWorkspaces    = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
     -- launch a terminal
-    [ ((modm,               xK_Return), spawn myTerminal)
+    [ ((modm,               xK_Return), spawn myTerminal')
  
     -- launch rofi
     , ((modm,               xK_space ), spawn myrofi)
@@ -150,7 +152,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --, ((modm,               xK_d     ), goToSelected defaultGSConfig)
     --, ((modm .|. shiftMask, xK_d     ), spawnSelected defaultGSConfig ["kitty","telegram-desktop"])
     , ((modm,               xK_d     ), goToSelected $ gsconfig1)
-    , ((modm .|. shiftMask, xK_d     ), spawnSelected defaultGSConfig ["kitty","telegram-desktop"])
+    , ((modm .|. shiftMask, xK_d     ), spawnSelected def ["kitty","telegram-desktop"])
 
     --- Rotate through the available layout algorithms
     , ((modm,               xK_p ), sendMessage NextLayout)
@@ -266,10 +268,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 myStartupHook = do
 	spawnOnce "qjackctl"
 	spawnOnce "pavucontrol"
-	spawnOnce "ardour6 default"
-	spawn "feh --bg-fill --no-fehbg ~/.xmonad/wallpapers/nord_buildings.png"
-	spawn "picom --experimental-backends --backend glx --xrender-sync-fence --config ~/.xmonad/picom/picom.conf"
-	spawn "$HOME/.xmonad/polybar/launch.sh"
+	-- spawnOnce "ardour6 default"
+	spawn "feh --bg-fill --no-fehbg ~/.config/xmonad/wallpapers/nord_buildings.png"
+	spawn "picom --experimental-backends --backend glx --xrender-sync-fence --config ~/.config/xmonad/picom/picom.conf"
+	spawn "$HOME/.config/xmonad/polybar/launch.sh"
 	spawn "fcitx5"
 	spawn "parcellite"
 	setWMName "LG3D"
